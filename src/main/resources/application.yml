@@ -1,0 +1,25 @@
+ding:
+  demo:
+    appKey: "dingmkmiyrzg7nd5ctfk"
+    appSecret: "trzgkJCwQHRBmtH9gBd7Z4kvXjSORBXZmC5lw8MHPDuR4GnnqDGssK9PuWrXccSF"
+    corpId: "ding4dab547f6ee5b93abc961a6cb783455b"
+    agentId: 592243597
+    dingAccessToken: "https://oapi.dingtalk.com/gettoken?appkey={appkey}&appsecret={appsecret}"
+    dingGetUserId: "https://oapi.dingtalk.com/user/getuserinfo?access_token={access_token}&code={code}"
+    dingGetUser: "https://oapi.dingtalk.com/user/get?access_token={access_token}&userid={userid}"
+server:
+  port: 9001
+
+
+logging:
+  level:
+    ROOT: info
+    cn.lnexin: debug
+
+spring:
+  application:
+    name: demo
+  thymeleaf:
+    prefix:
+      classpath: /templates   # 访问template下的html文件需要配置模板，映射
+    cache: false # 开发时关闭缓存,不然没法看到实时页面

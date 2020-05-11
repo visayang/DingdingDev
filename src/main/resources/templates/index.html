@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+
+<head>
+    <title>微应用</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <meta name="description" content="微应用">
+
+    <link rel="stylesheet" href="/lib/weui.min.css">
+    <link rel="stylesheet" href="/css/jquery-weui.css">
+    <link rel="stylesheet" href="/css/demos.css">
+
+    <!--配置钉钉  接收监控报警信息-->
+    <meta name="wpk-bid" content="dta_1_592243597">
+    <script>
+        !(function(c,i,e,b){var h=i.createElement("script");
+            var f=i.getElementsByTagName("script")[0];
+            h.type="text/javascript";
+            h.crossorigin=true;
+            h.onload=function(){c[b]||(c[b]=new c.wpkReporter({bid:"dta_1_592243597"}));
+                c[b].installAll()};
+            f.parentNode.insertBefore(h,f);
+            h.src=e})(window,document,"https://g.alicdn.com/woodpeckerx/jssdk??wpkReporter.js","__wpk");
+    </script>
+
+    <!-- 这个必须引入的啊，钉钉的前端js SDK, 使用框架的请自行参照开发文档 -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.7.13/dingtalk.open.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+
+    <script src="/lib/jquery-2.1.4.js"></script>
+    <script src="/lib/fastclick.js"></script>
+    <script src="/js/jquery-weui.js"></script>
+
+    <style>
+        .swiper-container {
+            width: 100%;
+        }
+
+        .swiper-container img {
+            display: block;
+            width: 100%;
+        }
+    </style>
+
+</head>
+
+<body >
+
+<div class="swiper-container">
+    <!-- Additional required wrapper -->
+    <div class="swiper-wrapper">
+        <!-- Slides -->
+        <div class="swiper-slide"><img src="/img/nav/nav2.png"/></div>
+        <div class="swiper-slide"><img src="/img/nav/nav3.png"/></div>
+
+    </div>
+    <!-- If we need pagination -->
+    <div class="swiper-pagination"></div>
+</div>
+
+
+<div class="weui-grids" >
+    <a id="attendance" href="javascript:void(0);" class="weui-grid js_grid">
+        <div class="weui-grid__icon">
+            <img src="/img/attendance_logo.png" alt="">
+        </div>
+        <p class="weui-grid__label">
+            考勤查看
+        </p>
+    </a>
+    <a id="meetingorder" href="javascript:void(0);" class="weui-grid js_grid">
+        <div class="weui-grid__icon">
+            <img src="/img/meetingorder_logo.png" alt="">
+        </div>
+        <p class="weui-grid__label">
+            会议室预定
+        </p>
+    </a>
+    <a id="notification" href="javascript:void(0);" class="weui-grid js_grid">
+        <div class="weui-grid__icon">
+            <img src="/img/notification_logo.png" alt="">
+        </div>
+        <p class="weui-grid__label">
+            通知部门
+        </p>
+    </a>
+
+    <a id="nofinished" href="javascript:void(0);" class="weui-grid js_grid">
+        <div class="weui-grid__icon">
+            <img src="/img/nofinished_logo.png" alt="">
+        </div>
+        <p class="weui-grid__label">
+            待开发区。。。
+        </p>
+    </a>
+</div>
+
+</body>
+
+<script src="/js/swiper.js"></script>
+
+<script type="text/javascript">
+    $(".swiper-container").swiper({
+        loop: true,
+        autoplay: 3000
+    });
+
+
+    var loginUserName = null;
+    var loginUserPhonenum = null;
+
+    $(function () {
+        FastClick.attach(document.body);
+
+        //钉钉sdk 初始化
+        // dd.ready参数为回调函数，在环境准备就绪时触发，jsapi的调用需要保证在该回调函数触发后调用，否则无效。
+        dd.ready(function () {
+            //获取当前网页的url
+            //http://ding-web.lnexin.cn/?corpid=ding46a9582af5b7541b35c2f4657eb6378f
+            var currentUrl = document.location.toString()
+            // 解析url中包含的corpId
+            var corpId = currentUrl.split("corpid=")[1];
+
+            //使用SDK 获取免登授权码
+            dd.runtime.permission.requestAuthCode({
+                corpId: corpId,
+                onSuccess: function (result) {
+                    var code = result.code;
+                    $("#code").append(code)
+                    //请求我们服务端的登陆地址
+                    $.get("http://1u75885h12.iask.in/ding/login?code=" + code + "&corpId=" + corpId, function (response) {
+                        if (response.user) {
+                            for (item in response.user) {
+                                if(item == "name"){
+                                    loginUserName = response.user[item];
+                                }
+                                if(item == "mobile"){
+                                    loginUserPhonenum = response.user[item];
+                                }
+                                if(loginUserPhonenum!=null&&loginUserName!=null){
+                                    $.toptip('查询失败，未获取手机号', 'error');
+                                    break;
+                                }
+                            }
+                        }
+                        if(loginUserName){
+                            $.toptip("欢迎你——"+loginUserName, 'success');
+                        }else {
+                            $.toptip('查询失败，未获取到名字或者手机号', 'error');
+                        }
+
+                    });
+                }
+            });
+        });
+    })
+
+    $(document).on("click", "#attendance", function() {
+        if(loginUserPhonenum=='17612173295'){
+            var url = "/attendance?dd_nav_bgcolor=FF5E97F6&loginUserPhone="+loginUserPhonenum
+            location.href = url;
+        }else {
+            $.toptip("开发阶段 不允许非管理员进入，别点我了。。。", 'success');
+        }
+    })
+
+    $(document).on("click", "#meetingorder", function() {
+        $.toptip("开发中，别点我了。。。", 'success');
+    })
+
+    $(document).on("click", "#notification", function() {
+        $.toptip("开发中，别点我了。。。", 'success');
+    })
+
+    $(document).on("click", "#nofinished", function() {
+        $.toptip("开发中，别点我了。。。", 'success');
+    })
+
+
+</script>
+
+</html>

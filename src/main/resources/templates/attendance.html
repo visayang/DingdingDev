@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+
+<head>
+    <title>考勤</title>
+    <!-- 这个必须引入的啊，钉钉的前端js SDK, 使用框架的请自行参照开发文档 -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.7.13/dingtalk.open.js"></script>
+    <!-- 这个jquery 想不想引入自己决定，没什么影响 -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="/lib/weui.min.css">
+    <link rel="stylesheet" href="/css/jquery-weui.css">
+    <link rel="stylesheet" href="/css/demos.css">
+
+    <script src="/lib/fastclick.js"></script>
+    <script src="/js/jquery-weui.js"></script>
+    <script src="/js/jquery.json-2.4.min.js"></script>
+
+    <meta name="wpk-bid" content="dta_2_39157">
+    <script>
+        !(function(c,i,e,b){var h=i.createElement("script");
+            var f=i.getElementsByTagName("script")[0];
+            h.type="text/javascript";
+            h.crossorigin=true;
+            h.onload=function(){c[b]||(c[b]=new c.wpkReporter({bid:"dta_2_39157"}));
+                c[b].installAll()};
+            f.parentNode.insertBefore(h,f);
+            h.src=e})(window,document,"https://g.alicdn.com/woodpeckerx/jssdk??wpkReporter.js","__wpk");
+    </script>
+
+
+    <style>
+
+        table{
+            width:100%;
+            border-collapse:collapse;/*边框合并模式*/
+            text-align: center;
+            margin-top: 100px;
+            margin-left: 100px;
+        }
+        td,th{
+            width: 33%;
+            border:1px solid #333;
+            padding: 5px;
+            font-size: 24px;
+        }
+        th{
+            background-color: #c997ff;
+        }
+        td{
+            background-color: #75beff;
+        }
+
+        thead tr{
+            height:40px;
+            background-color: #cccccc;
+        }
+        caption{
+            text-align:left;
+            padding-bottom:5px;
+            padding-top: 5px;
+            background-color: #FF0000;
+            color: white;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body style="width:100%;" >
+
+<div class="weui-cells weui-cells_form">
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label for="date3" class="weui-label">日期</label></div>
+        <div class="weui-cell__bd">
+            <input class="weui-input" id="date3" type="text">
+        </div>
+    </div>
+</div>
+<div id="inline-calendar"></div>
+
+<button id="btn2" style="position:fixed;right: 10px;display: inline-block;width:100px;height:200px;background-image: url('/img/queryM.png');background-size:100% 100%;"></button>
+
+<div id="kaoqin" style="width: 100%">
+    <table style="display: none" id="table1" >
+        <thead>
+        <tr>
+            <th>姓名</th>
+            <th>首次打卡</th>
+            <th>末次打卡</th>
+        </tr>
+        </thead>
+
+        <tbody id="tbody1">
+
+        </tbody>
+    </table>
+
+    <table style="display: none" id="table2" >
+        <thead>
+        <tr>
+            <th>工作日期</th>
+            <th>首次打卡</th>
+            <th>末次打卡</th>
+        </tr>
+        </thead>
+
+        <tbody id="tbody2">
+
+        </tbody>
+    </table>
+
+</div>
+</body>
+
+<script type="text/javascript">
+    var loginUserName = null;
+
+    loginUserName = "[[${loginUserName}]]";
+    $.toptip("欢迎你——"+loginUserName, 'success');
+
+    $("#date3").calendar({
+        container: "#inline-calendar",
+        onChange: function (p, values, displayValues) {
+            getQueryDate(values[0])
+        },
+    });
+
+    function getQueryDate(value){
+            if(loginUserName!=null){
+                dd.device.notification.showPreloader({
+                    text: "使劲加载中..", //loading显示的字符，空表示不显示文字
+                    showIcon: true, //是否显示icon，默认true
+                    onSuccess : function(result) {
+                        /*{}*/
+                    },
+                    onFail : function(err) {}
+                })
+                $.ajax({
+                    type: "GET",    //GET,POST    (PUT 或其它方式也有，不同浏览器兼容不同)
+                    url: "http://1u75885h12.iask.in/ding/getAttendanceTodaySelf?personName="+loginUserName+"&queryDate="+value.replace(/\//g,'-'),      //请求的地址，string类型
+                    data: {'key': new Date().getTime().toString(36)},    //data  提交的键值对
+                    contentType: "application/json; charset=UTF-8",
+                    async: true,          //异步，从complete 回调
+                    dataType: "json",    //设置返回的数据类型，如果是json  字符串，设置了后 返回responseJSON，是json对象
+
+                    success: function (response) {
+                        dd.device.notification.hidePreloader({
+                            onSuccess : function(result) {
+                                /*{}*/
+                            },
+                            onFail : function(err) {}
+                        })
+
+                        if (response.self) {
+                            $("#table2").css("display","none");
+                            $("#table1").css("display","inline-block");
+                            $("#tbody1").text("")
+
+                            var tbody=document.querySelector("#tbody1");
+                            var tr=document.createElement("tr");
+                            tbody.appendChild(tr);
+
+                            for (item in response.self) {
+                                var td=document.createElement("td");  //创建单元格
+                                tr.appendChild(td);
+                                td.innerHTML=response.self[item];
+                            }
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        dd.device.notification.hidePreloader({
+                            onSuccess : function(result) {
+                                /*{}*/
+                            },
+                            onFail : function(err) {}
+                        })
+
+                        $.toptip('查询失败，请检查网络再次重试', 'error');
+                    }
+                });
+
+            }else {
+                dd.device.notification.toast({
+                    icon: 'error', //icon样式，不同客户端参数不同，请参考参数说明
+                    text: "获取用户名失败", //提示信息
+                    duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                    delay: 0, //延迟显示，单位秒，默认0
+                    onSuccess : function(result) {
+                        /*{}*/
+                    },
+                    onFail : function(err) {}
+                })
+            }
+    }
+
+
+    $(function () {
+        FastClick.attach(document.body);
+
+        //查询本人当月考勤
+        $("#btn2").click(function () {
+            if(loginUserName!=null){
+                dd.device.notification.showPreloader({
+                    text: "使劲加载中..", //loading显示的字符，空表示不显示文字
+                    showIcon: true, //是否显示icon，默认true
+                    onSuccess : function(result) {
+                        /*{}*/
+                    },
+                    onFail : function(err) {}
+                })
+
+                $.ajax({
+                    type: "GET",    //GET,POST    (PUT 或其它方式也有，不同浏览器兼容不同)
+                    url: "http://1u75885h12.iask.in/ding/getAttendanceCmonthSelf?personName="+loginUserName,      //请求的地址，string类型
+                    data: {'key': new Date().getTime().toString(36)},    //data  提交的键值对
+                    contentType: "application/json; charset=UTF-8",
+                    async: true,          //异步，从complete 回调
+                    dataType: "json",    //设置返回的数据类型，如果是json  字符串，设置了后 返回responseJSON，是json对象
+
+                    success: function (response) {
+                        dd.device.notification.hidePreloader({
+                            onSuccess : function(result) {
+                                /*{}*/
+                            },
+                            onFail : function(err) {}
+                        })
+                        if(response){
+
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        dd.device.notification.hidePreloader({
+                            onSuccess : function(result) {
+                                /*{}*/
+                            },
+                            onFail : function(err) {}
+                        })
+                        $.toptip('查询失败，请检查网络再次重试', 'error');
+                    }
+                });
+            }else {
+                dd.device.notification.toast({
+                    icon: 'error', //icon样式，不同客户端参数不同，请参考参数说明
+                    text: "获取用户名失败", //提示信息
+                    duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                    delay: 0, //延迟显示，单位秒，默认0
+                    onSuccess : function(result) {
+                        /*{}*/
+                    },
+                    onFail : function(err) {}
+                })
+            }
+        })
+
+    })
+
+</script>
+</html>
